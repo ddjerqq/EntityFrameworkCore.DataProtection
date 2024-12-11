@@ -1,6 +1,6 @@
 # Klean.EntityFrameworkCore.DataProtection
 
-[![tests](https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/actions/workflows/build.yaml/badge.svg)](https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/actions/workflows/test.yml)
+[![tests](https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/actions/workflows/test.yaml/badge.svg)](https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/actions/workflows/test.yaml)
 [![Nuget](https://img.shields.io/nuget/v/Klean.EntityFrameworkCore.DataProtection.svg)](https://www.nuget.org/packages/Klean.EntityFrameworkCore.DataProtection)
 [![Nuget Downloads](https://img.shields.io/nuget/dt/Klean.EntityFrameworkCore.DataProtection)](https://www.nuget.org/packages/Klean.EntityFrameworkCore.DataProtection)
 
