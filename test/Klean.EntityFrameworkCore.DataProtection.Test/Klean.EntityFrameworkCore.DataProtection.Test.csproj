@@ -6,8 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <AssemblyName>EntityFrameworkCore.DataProtection.Test</AssemblyName>
-        <RootNamespace>EntityFrameworkCore.DataProtection.Test</RootNamespace>
+        <PackageId>Klean.EntityFrameworkCore.DataProtection.Test</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,7 +16,7 @@
         <PackageReference Include="NUnit" Version="4.2.2"/>
         <PackageReference Include="NUnit.Analyzers" Version="4.3.0"/>
         <PackageReference Include="NUnit3TestAdapter" Version="4.6.0"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
     </ItemGroup>
     
     <ItemGroup>
@@ -25,7 +24,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\..\src\EntityFrameworkCore.DataProtection\EntityFrameworkCore.DataProtection.csproj" />
+      <ProjectReference Include="..\..\src\Klean.EntityFrameworkCore.DataProtection\Klean.EntityFrameworkCore.DataProtection.csproj" />
     </ItemGroup>
 
 </Project>

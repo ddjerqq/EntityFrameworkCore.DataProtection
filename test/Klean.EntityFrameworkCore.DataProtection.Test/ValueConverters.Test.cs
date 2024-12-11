@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EntityFrameworkCore.DataProtection.Test;
+namespace Klean.EntityFrameworkCore.DataProtection.Test;
 
 internal sealed class ValueConvertersTests
 {
@@ -13,7 +13,7 @@ internal sealed class ValueConvertersTests
     {
         using var scope = Util.ServiceProvider.Value.CreateScope();
         var dataProtectorProvider = scope.ServiceProvider.GetRequiredService<IDataProtectionProvider>();
-        var protector = dataProtectorProvider.CreateProtector("EntityFrameworkCore.DataProtection");
+        var protector = dataProtectorProvider.CreateProtector("Klean.EntityFrameworkCore.DataProtection");
 
         var stringConverter = new StringDataProtectionValueConverter(protector);
         var byteArrayConverter = new ByteArrayDataProtectionValueConverter(protector);

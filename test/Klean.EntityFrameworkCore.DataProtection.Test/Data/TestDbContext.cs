@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EntityFrameworkCore.DataProtection.Test.Data;
+namespace Klean.EntityFrameworkCore.DataProtection.Test.Data;
 
 internal sealed class TestDbContext(DbContextOptions<TestDbContext> options, IDataProtectionProvider dataProtectionProvider) : DbContext(options)
 {

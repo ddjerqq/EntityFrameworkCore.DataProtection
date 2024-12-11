@@ -1,10 +1,10 @@
-# EntityFrameworkCore.DataProtection
+# Klean.EntityFrameworkCore.DataProtection
 
-[![.NET](https://github.com/ddjerqq/EntityFrameworkCore.DataProtection/actions/workflows/build.yml/badge.svg)](https://github.com/ddjerqq/EntityFrameworkCore.DataProtection/actions/workflows/build.yml)
-[![Nuget](https://img.shields.io/nuget/v/EntityFrameworkCore.DataProtection.svg)](https://www.nuget.org/packages/EntityFrameworkCore.DataProtection)
-[![Nuget Downloads](https://img.shields.io/nuget/dt/EntityFrameworkCore.DataProtection)](https://www.nuget.org/packages/EntityFrameworkCore.DataProtection)
+[![tests](https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/actions/workflows/build.yml/badge.svg)](https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/actions/workflows/test.yml)
+[![Nuget](https://img.shields.io/nuget/v/Klean.EntityFrameworkCore.DataProtection.svg)](https://www.nuget.org/packages/Klean.EntityFrameworkCore.DataProtection)
+[![Nuget Downloads](https://img.shields.io/nuget/dt/Klean.EntityFrameworkCore.DataProtection)](https://www.nuget.org/packages/Klean.EntityFrameworkCore.DataProtection)
 
-`EntityFrameworkCore.DataProtection` is a [Microsoft Entity Framework Core](https://github.com/aspnet/EntityFrameworkCore) extension which
+`Klean.EntityFrameworkCore.DataProtection` is a [Microsoft Entity Framework Core](https://github.com/aspnet/EntityFrameworkCore) extension which
 adds support for data protection and querying for encrypted properties for your entities.
 
 # What problem does this library solve?
@@ -41,7 +41,7 @@ Keeping your encryption keys secure is your responsibility. If you lose your enc
 Install the package from [NuGet](https://www.nuget.org/) or from the `Package Manager Console` :
 
 ```powershell
-PM> Install-Package EntityFrameworkCore.DataProtection
+PM> Install-Package Klean.EntityFrameworkCore.DataProtection
 ```
 
 ### Configuring Data Protection in your DbContext
@@ -49,24 +49,14 @@ PM> Install-Package EntityFrameworkCore.DataProtection
 `YourDbContext.cs`
 
 ```csharp
-//                                                vv injected from DI
 public class Your(DbContextOptions<Your> options, IDataProtectionProvider dataProtectionProvider) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        // if you are using IEntityTypeConfiguration<T> in your project
-        // then ApplyConfigurationsFromAssembly must come before base.OnModelCreating
-        builder.ApplyConfigurationsFromAssembly(typeof(YourDbContext).Assembly);
-        
         base.OnModelCreating(builder);
-        
-        //      UseDataProtection MUST come after base.OnModelCreating
         builder.UseDataProtection(dataProtectionProvider);
-        
-        // anything else you want to do with the builder must come after the call to UseDataProtection, unless you know exactly what you are doing
-        builder.SnakeCaseRename();
     }
 }
 ```
@@ -80,7 +70,13 @@ public class Your(DbContextOptions<Your> options, IDataProtectionProvider dataPr
 `Program.cs`
 
 ```csharp
-var keyDirectory = new DirectoryInfo("keys");
+builder.Services.AddDataProtectionServices();
+```
+
+To persist keys in file system use the following code:
+
+```csharp
+var keyDirectory = new DirectoryInfo("path/to/solution/.aspnet/dp/keys");
 builder.Services.AddDataProtectionServices()
     .PersistKeysToFileSystem(keyDirectory);
 ```
@@ -95,12 +91,14 @@ builder.Services.AddDataProtectionServices()
 ```csharp
 services.AddDbContext<YourDbContext>(opt => opt
     .AddDataProtectionInterceptors()
-    .UseSqlite()); // or anything else
+    /* ... */);
 ```
 
 > [!WARNING]
-> You **MUST** call `AddDataProtectionInterceptors` if you are using any encrypted properties marked as queryable in your entities.
+> You **MUST** call `AddDataProtectionInterceptors` if you are using any encrypted properties that are queryable in your entities.
 > If you are not using any queryable encrypted properties, you can skip this step.
+
+## Usage:
 
 ### Marking your properties as encrypted
 
@@ -110,7 +108,6 @@ Using the EncryptedAttribute:
 ```csharp
 class User
 {
-  //       v default           v default
   [Encrypt(IsQueryable = true, IsUnique = true)]
   public string SocialSecurityNumber { get; set; }
 
@@ -136,21 +133,11 @@ protected override void OnModelCreating(ModelBuilder builder)
 }
 ```
 
-Creating a custom `EntityTypeConfiguration` (Recommended for DDD):
-```csharp
-class UserConfiguration : IEntityTypeConfiguration<User>
-{
-  public void Configure(EntityTypeBuilder<User> builder)
-  {
-    builder.Property(e => e.SocialSecurityNumber).IsEncryptedQueryable();
-    builder.Property(e => e.IdPicture).IsEncrypted();
-  }
-}
-```
+The above step also applies to custom `EntityTypeConfiguration`s
 
 ### Querying encrypted properties
 
-You can query encrypted properties that are marked as Queryable using the `QueryableExt.WherePdEquals` extension method:
+You can query encrypted properties that are marked as Queryable using the `IQueryable<T>.WherePdEquals` extension method:
 
 ```csharp
 var foo = await DbContext.Users
@@ -159,11 +146,14 @@ var foo = await DbContext.Users
 ```
 
 > [!WARNING]
-> The `QueryableExt.WherePdEquals` method is only available for properties that are marked as Queryable using the `[Encrypt(isQueryable: true)]` attribute or the
-> `IsEncrypted(isQueryable: true)` method.
-> And before using `WherePdEquals` you **MUST** call `AddDataProtectionInterceptors` in your `DbContext` configuration.
+> The `QueryableExt.WherePdEquals` method is only available for properties that are marked as Queryable using the `[Encrypt(IsQueryable = true)]` attribute or the
+> `IsEncryptedQueryable()` method.
 
-> [!TIP]
+> [!CAUTION]
+> Before using `WherePdEquals` you **MUST** call `AddDataProtectionInterceptors` in your `DbContext` configuration.
+> There will be no error if you forget to call `AddDataProtectionInterceptors`, but the query will not work as expected.
+
+> [!NOTE]
 > The `WherePdEquals` extension method generates an expression like this one under the hood:<br/>
 > `Where(e => EF.Property<string>(e, $"{propertyName}ShadowHash") == value.Sha256Hash())`
 

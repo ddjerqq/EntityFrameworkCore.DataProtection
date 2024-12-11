@@ -47,7 +47,7 @@ public static class ModelBuilderExt
     /// </exception>
     public static ModelBuilder UseDataProtection(this ModelBuilder builder, IDataProtectionProvider dataProtectionProvider)
     {
-        var protector = dataProtectionProvider.CreateProtector("EntityFrameworkCore.DataProtection");
+        var protector = dataProtectionProvider.CreateProtector("Klean.EntityFrameworkCore.DataProtection");
 
         var properties = (
                 from entityType in builder.Model.GetEntityTypes()

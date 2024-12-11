@@ -1,9 +1,9 @@
 ﻿using EntityFrameworkCore.DataProtection.Extensions;
-using EntityFrameworkCore.DataProtection.Test.Data;
 using FluentAssertions;
+using Klean.EntityFrameworkCore.DataProtection.Test.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace EntityFrameworkCore.DataProtection.Test;
+namespace Klean.EntityFrameworkCore.DataProtection.Test;
 
 internal sealed class DbContextTests
 {

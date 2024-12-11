@@ -1,13 +1,14 @@
 ﻿using System.Reflection;
+using EntityFrameworkCore.DataProtection;
 using EntityFrameworkCore.DataProtection.Extensions;
-using EntityFrameworkCore.DataProtection.Test.Data;
+using Klean.EntityFrameworkCore.DataProtection.Test.Data;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EntityFrameworkCore.DataProtection.Test;
+namespace Klean.EntityFrameworkCore.DataProtection.Test;
 
 internal sealed class ExceptionHandlingTests
 {

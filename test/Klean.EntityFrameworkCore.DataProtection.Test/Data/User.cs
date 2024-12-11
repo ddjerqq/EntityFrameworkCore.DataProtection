@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
+using EntityFrameworkCore.DataProtection;
 
-namespace EntityFrameworkCore.DataProtection.Test.Data;
+namespace Klean.EntityFrameworkCore.DataProtection.Test.Data;
 
 internal sealed class User
 {

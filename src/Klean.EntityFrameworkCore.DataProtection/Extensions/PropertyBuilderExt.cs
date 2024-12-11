@@ -9,13 +9,13 @@ namespace EntityFrameworkCore.DataProtection.Extensions;
 /// </summary>
 public static class PropertyBuilderExt
 {
-    private const string IsEncryptedAnnotationName = "EntityFrameworkCore.DataProtection.IsEncrypted";
-    private const string IsQueryableAnnotationName = "EntityFrameworkCore.DataProtection.IsQueryable";
-    private const string IsUniqueIndexAnnotationName = "EntityFrameworkCore.DataProtection.IsUniqueIndex";
+    private const string IsEncryptedAnnotationName = "Klean.EntityFrameworkCore.DataProtection.IsEncrypted";
+    private const string IsQueryableAnnotationName = "Klean.EntityFrameworkCore.DataProtection.IsQueryable";
+    private const string IsUniqueIndexAnnotationName = "Klean.EntityFrameworkCore.DataProtection.IsUniqueIndex";
 
     internal static readonly InvalidOperationException InvalidTypeException =
         new("Only string and byte[] properties are supported for now. " +
-            "Please open an issue on https://github.com/ddjerqq/EntityFrameworkCore.DataProtection/issues to request a new feature");
+            "Please open an issue on https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/issues to request a new feature");
 
     /// <summary>
     /// Marks the property as encrypted.
