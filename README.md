@@ -7,15 +7,16 @@
 `EntityFrameworkCore.DataProtection` is a [Microsoft Entity Framework Core](https://github.com/aspnet/EntityFrameworkCore) extension which
 adds support for data protection and querying for encrypted properties for your entities.
 
-## What problem does this library solve?
+# What problem does this library solve?
 
 When you need to store sensitive data in your database, you may want to encrypt it to protect it from unauthorized access, however, when you
 encrypt data, it becomes impossible to query it by EF-core, which is not really convenient if you want to encrypt, for example, email addresses, or SSNs
 AND then filter entities by them.
-This library (optionally) hashes the sensitive data and stores their sha256 hashes in a shadow property alongside the encrypted data. 
-This allows you to query the encrypted data without decrypting it first. using `QueryableExt.WherePdEquals`
 
-## Disclaimer
+This library has support for hashing the sensitive data and storing their (sha256) hashes in a shadow property alongside the encrypted data.
+This allows you to query for the encrypted properties without decrypting them first. using `QueryableExt.WherePdEquals`
+
+# Disclaimer
 
 This project is maintained by [one (10x) developer](https://github.com/ddjerqq) and is not affiliated with Microsoft.
 
@@ -33,7 +34,7 @@ Keeping your encryption keys secure is your responsibility. If you lose your enc
 - string
 - byte[]
 
-## Getting started
+# Getting started
 
 ### Installing the package
 
