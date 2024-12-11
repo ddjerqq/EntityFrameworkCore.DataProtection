@@ -38,9 +38,6 @@ jobs:
         run: |
           echo "Cache hit: ${{ steps.nuget-cache.outputs.cache-hit }}"
 
-      - name: Display .NET version 📚
-        run: dotnet --version
-
       - name: Restore 📦
         run: dotnet restore --verbosity minimal
 
