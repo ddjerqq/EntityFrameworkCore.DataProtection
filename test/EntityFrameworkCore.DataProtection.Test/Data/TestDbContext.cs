@@ -21,6 +21,6 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.Property(x => x.Email).IsEncrypted(true);
+        builder.Property(x => x.Email).IsEncryptedQueryable();
     }
 }

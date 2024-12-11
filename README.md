@@ -110,23 +110,29 @@ Using the EncryptedAttribute:
 ```csharp
 class User
 {
-  [Encrypt(isQueryable: true)]
+  //       v default           v default
+  [Encrypt(IsQueryable = true, IsUnique = true)]
   public string SocialSecurityNumber { get; set; }
 
-  [Encrypt]
+  [Encrypt(IsQueryable = false, IsUnique = false)]
   public byte[] IdPicture { get; set; }
 }
 ```
+
+> [!TIP]
+> By default `IsQueryable` and `IsUnique` are set to `true`, you can omit them if you want to use the default values.
+> If you have a property that is marked as `IsQueryable = true` and you want to query it, you **MUST** call `AddDataProtectionInterceptors` in your `DbContext` configuration.
 
 Using the FluentApi (in your `DbContext.OnModelCreating` method):
 ```csharp
 protected override void OnModelCreating(ModelBuilder builder)
 {
-    builder.Entity<User>(entity =>
-    {
-        entity.Property(e => e.SocialSecurityNumber).IsEncrypted(isQueryable: true);
-        entity.Property(e => e.IdPicture).IsEncrypted(isQueryable: false);
-    });
+  builder.Entity<User>(entity =>
+  {
+    //                                                                v defaults to true
+    entity.Property(e => e.SocialSecurityNumber).IsEncryptedQueryable(isUnique: true);
+    entity.Property(e => e.IdPicture).IsEncrypted();
+  });
 }
 ```
 
@@ -134,11 +140,11 @@ Creating a custom `EntityTypeConfiguration` (Recommended for DDD):
 ```csharp
 class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
-    {
-        builder.Property(e => e.SocialSecurityNumber).IsEncrypted(isQueryable: true);
-        builder.Property(e => e.IdPicture).IsEncrypted(isQueryable: false);
-    }
+  public void Configure(EntityTypeBuilder<User> builder)
+  {
+    builder.Property(e => e.SocialSecurityNumber).IsEncryptedQueryable();
+    builder.Property(e => e.IdPicture).IsEncrypted();
+  }
 }
 ```
 

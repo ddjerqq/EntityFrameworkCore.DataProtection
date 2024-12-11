@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EntityFrameworkCore.DataProtection.Extensions;
 
@@ -12,7 +13,7 @@ public static class ModelBuilderExt
 {
     /// <summary>
     /// Configures the data protection for the entities marked with <see cref="EncryptAttribute"/> or Fluently marked
-    /// as Encrypted using <see cref="PropertyBuilderExtensions.IsEncrypted{TProperty}"/>.
+    /// as Encrypted using <see cref="PropertyBuilderExt.IsEncrypted{TProperty}"/>.
     /// </summary>
     /// <remarks>
     /// You must call this method __after__ <see cref="ModelBuilder.ApplyConfigurationsFromAssembly"/>.
@@ -49,14 +50,14 @@ public static class ModelBuilderExt
         var protector = dataProtectionProvider.CreateProtector("EntityFrameworkCore.DataProtection");
 
         var properties = (
-                from prop in builder.Model.GetEntityTypes().SelectMany(type => type.GetProperties())
-                let status = prop.GetEncryptionStatus()
+                from entityType in builder.Model.GetEntityTypes()
+                from prop in entityType.GetProperties()
+                let status = prop.GetEncryptionMetadata()
                 where status.SupportsEncryption
-                select (prop, status.SupportsQuerying))
-            // need to collect to a list because it is modified in AddShadowProperty
+                select (entityType, prop, status))
             .ToList();
 
-        foreach (var (property, supportsQuerying) in properties)
+        foreach (var (entityType, property, status) in properties)
         {
             var propertyType = property.PropertyInfo?.PropertyType;
 
@@ -65,28 +66,31 @@ public static class ModelBuilderExt
             else if (propertyType == typeof(byte[]))
                 property.SetValueConverter(new ByteArrayDataProtectionValueConverter(protector));
             else
-                throw new InvalidOperationException("Only string and byte[] properties are supported for now. Please open an issue on https://github.com/ddjerqq/EntityFrameworkCore.DataProtection/issues to request a new feature");
+                throw PropertyBuilderExt.InvalidTypeException;
 
-            if (supportsQuerying)
-                AddShadowProperty(property);
+            if (status.SupportsQuerying)
+                AddShadowProperty(entityType, property, status.IsUniqueIndex);
         }
 
         return builder;
     }
 
-    private static void AddShadowProperty(IMutableProperty property)
+    private static void AddShadowProperty(IMutableEntityType entityType, IMutableProperty property, bool isUniqueIndex)
     {
-        var entityType = property.DeclaringType;
         var originalPropertyName = property.Name;
         var shadowPropertyName = $"{originalPropertyName}ShadowHash";
 
-        if (entityType.GetProperties().All(p => p.Name != shadowPropertyName))
-        {
-            var shadowProperty = entityType.AddProperty(shadowPropertyName, typeof(string));
-            shadowProperty.IsShadowProperty();
-            // TODO: do we need the shadow hashes to be unique indexes?
+        if (entityType.GetProperties().Any(p => p.Name == shadowPropertyName))
+            return;
+
+        var shadowProperty = entityType.AddProperty(shadowPropertyName, typeof(string));
+        shadowProperty.IsShadowProperty();
+
+        if (isUniqueIndex)
             shadowProperty.IsUniqueIndex();
-            shadowProperty.IsNullable = property.IsNullable;
-        }
+        else
+            shadowProperty.IsIndex();
+
+        shadowProperty.IsNullable = property.IsNullable;
     }
 }

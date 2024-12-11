@@ -51,7 +51,7 @@ internal sealed class ShadowHashSynchronizerSaveChangesInterceptor : SaveChanges
     {
         var properties =
             from prop in entityType.GetProperties()
-            let status = prop.GetEncryptionStatus()
+            let status = prop.GetEncryptionMetadata()
             where status is { SupportsEncryption: true, SupportsQuerying: true }
             select prop;
 

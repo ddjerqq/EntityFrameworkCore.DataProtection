@@ -1,12 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src/EntityFrameworkCore.DataProtection", "src/EntityFrameworkCore.DataProtection\EntityFrameworkCore.DataProtection.csproj", "{23817096-829D-465B-9C81-39EF87D90468}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src/EntityFrameworkCore.DataProtection", "src/EntityFrameworkCore.DataProtection/EntityFrameworkCore.DataProtection.csproj", "{23817096-829D-465B-9C81-39EF87D90468}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{08CF6BCC-3928-4FB6-A1A0-ABF5DE162D6C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6A01C6D2-B6BE-4584-897B-60710734DC66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityFrameworkCore.DataProtection.Test", "test\EntityFrameworkCore.DataProtection.Test\EntityFrameworkCore.DataProtection.Test.csproj", "{AEACE4E1-D3F5-4A5D-8632-695AFDBDC020}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityFrameworkCore.DataProtection.Test", "test/EntityFrameworkCore.DataProtection.Test/EntityFrameworkCore.DataProtection.Test.csproj", "{AEACE4E1-D3F5-4A5D-8632-695AFDBDC020}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,44 +1,57 @@
-name: .NET
+name: Build and publish
 
 on:
   workflow_dispatch:
-    
-#on:
 #  push:
 #    branches: [ main ]
 #  pull_request:
 #    branches: [ main ]
 
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
   build-library:
+    concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - name: Setup .NET Core
+      - name: Setup .NET 🛠️
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            3.1.x
-            5.0.x
             6.0.x
             7.0.x
             8.0.x
             9.0.x
 
-      - name: Display .NET version
+      - name: Load cache 🔃
+        id: nuget-cache
+        uses: actions/cache@v4
+        with:
+          path: "~/.nuget/packages"
+          key: "${{ runner.os }}-nuget-api-${{ hashFiles('**/*.csproj') }}"
+          restore-keys: "${{ runner.os }}-nuget-api-"
+
+      - name: Cache status ✅
+        run: |
+          echo "Cache hit: ${{ steps.nuget-cache.outputs.cache-hit }}"
+
+      - name: Display .NET version 📚
         run: dotnet --version
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore 📦
+        run: dotnet restore --verbosity minimal
 
-      - name: Build
-        run: dotnet build SoftFluent.EntityFrameworkCore.DataEncryption.sln --configuration Release -f net9.0 --no-restore
+      - name: Test 🧪
+        run: dotnet test --no-restore --verbosity minimal
 
-      - name: Run unit tests
-        run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings ./test/EntityFrameworkCore.DataEncryption.Test/runsettings.xml
+      - name: Pack 📦
+        run: dotnet pack --configuration Release --output .
 
-      - name: Copy coverage results
-        run:  cp ./test/EntityFrameworkCore.DataEncryption.Test/TestResults/**/*.xml ./test/EntityFrameworkCore.DataEncryption.Test/TestResults/
+      - name: Push to NuGet 🚀
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json"

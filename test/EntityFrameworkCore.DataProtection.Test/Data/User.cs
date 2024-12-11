@@ -8,7 +8,7 @@ internal sealed class User
 
     public required string Name { get; init; }
 
-    [Encrypt(true)]
+    [Encrypt]
     public required string SocialSecurityNumber { get; init; }
 
     /// <summary>
@@ -16,7 +16,7 @@ internal sealed class User
     /// </summary>
     public required string Email { get; init; }
 
-    [Encrypt]
+    [Encrypt(IsQueryable = false, IsUnique = false)]
     public required byte[] IdPicture { get; init; }
 
     public static User CreateRandom()
