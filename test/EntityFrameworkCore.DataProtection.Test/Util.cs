@@ -1,5 +1,6 @@
 ﻿using EntityFrameworkCore.DataProtection.Extensions;
 using EntityFrameworkCore.DataProtection.Test.Data;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,17 +8,28 @@ namespace EntityFrameworkCore.DataProtection.Test;
 
 internal static class Util
 {
-    private const string InMemoryDatabaseConnectionString = "DataSource=:memory:";
+    internal const string InMemoryDatabaseConnectionString = "Filename=:memory:";
 
     public static readonly Lazy<IServiceProvider> ServiceProvider = new(() =>
     {
         var services = new ServiceCollection();
 
-        services.AddDbContext<TestDbContext>(opt => opt.UseSqlite(InMemoryDatabaseConnectionString));
+        var connection = new SqliteConnection(InMemoryDatabaseConnectionString);
+        connection.Open();
+
         services.AddDataProtectionServices("test");
+        services.AddDbContext<TestDbContext>(opt => opt
+            .AddDataProtectionInterceptors()
+            .UseSqlite(connection));
 
         return services.BuildServiceProvider();
     });
 
-    internal static TestDbContext CreateDbContext() => ServiceProvider.Value.GetRequiredService<TestDbContext>();
+    internal static TestDbContext CreateDbContext()
+    {
+        var scope = ServiceProvider.Value.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        dbContext.Database.EnsureCreated();
+        return dbContext;
+    }
 }

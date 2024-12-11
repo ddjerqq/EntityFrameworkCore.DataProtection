@@ -26,7 +26,7 @@ public static class PropertyBuilderExtensions
     /// <typeparam name="TProperty">must be either string or byte[]</typeparam>
     /// <exception cref="NotImplementedException">if <see cref="TProperty"/> is neither string nor byte[]</exception>
     /// <returns>The same builder instance so that multiple configuration calls can be chained.</returns>
-    public static PropertyBuilder<TProperty> IsEncrypted<TProperty>(this PropertyBuilder<TProperty> builder, bool isQueryable = false)
+    public static PropertyBuilder<TProperty> IsEncrypted<TProperty>(this PropertyBuilder<TProperty> builder, bool isQueryable)
     {
         if (typeof(TProperty) != typeof(string) && typeof(TProperty) != typeof(byte[]))
             throw new InvalidOperationException("Only string and byte[] properties are supported for now. Please open an issue on https://github.com/ddjerqq/EntityFrameworkCore.DataProtection/issues to request a new feature");
@@ -36,7 +36,7 @@ public static class PropertyBuilderExtensions
         return builder;
     }
 
-    internal static (bool SupportsEncryption, bool SupportsQuerying) GetEncryptionStatus(this IMutableProperty property)
+    internal static (bool SupportsEncryption, bool SupportsQuerying) GetEncryptionStatus(this IReadOnlyProperty property)
     {
         var encryptAttribute = property.PropertyInfo?.GetCustomAttribute<EncryptAttribute>();
 

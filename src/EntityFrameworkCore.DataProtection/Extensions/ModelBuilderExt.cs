@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using EntityFrameworkCore.DataProtection.ValueConverters;
+﻿using EntityFrameworkCore.DataProtection.ValueConverters;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EntityFrameworkCore.DataProtection.Extensions;
 
@@ -48,50 +48,45 @@ public static class ModelBuilderExt
     {
         var protector = dataProtectionProvider.CreateProtector("EntityFrameworkCore.DataProtection");
 
-        var properties = builder.Model
-            .GetEntityTypes()
-            .SelectMany(type => type.GetProperties())
-            .Select(prop =>
-            {
-                var status = prop.GetEncryptionStatus();
-                return (prop, status.SupportsEncryption, status.SupportsQuerying);
-            })
-            .Where(status => status.SupportsEncryption)
+        var properties = (
+                from prop in builder.Model.GetEntityTypes().SelectMany(type => type.GetProperties())
+                let status = prop.GetEncryptionStatus()
+                where status.SupportsEncryption
+                select (prop, status.SupportsQuerying))
+            // need to collect to a list because it is modified in AddShadowProperty
             .ToList();
 
-        foreach (var (property, _, supportsQuerying) in properties)
+        foreach (var (property, supportsQuerying) in properties)
         {
-            if (supportsQuerying)
-            {
-                var entityType = property.DeclaringType;
-                var originalPropertyName = property.Name;
-                var shadowPropertyName = $"{originalPropertyName}ShadowHash";
-
-                if (entityType.GetProperties().All(p => p.Name != shadowPropertyName))
-                {
-                    var shadowProperty = entityType.AddProperty(shadowPropertyName, typeof(string));
-                    shadowProperty.IsShadowProperty();
-                    // TODO: do we need the shadow hashes to be unique indexes?
-                    shadowProperty.IsUniqueIndex();
-                    shadowProperty.IsNullable = property.IsNullable;
-                }
-            }
-
             var propertyType = property.PropertyInfo?.PropertyType;
+
             if (propertyType == typeof(string))
-            {
                 property.SetValueConverter(new StringDataProtectionValueConverter(protector));
-            }
             else if (propertyType == typeof(byte[]))
-            {
                 property.SetValueConverter(new ByteArrayDataProtectionValueConverter(protector));
-            }
             else
-            {
                 throw new InvalidOperationException("Only string and byte[] properties are supported for now. Please open an issue on https://github.com/ddjerqq/EntityFrameworkCore.DataProtection/issues to request a new feature");
-            }
+
+            if (supportsQuerying)
+                AddShadowProperty(property);
         }
 
         return builder;
+    }
+
+    private static void AddShadowProperty(IMutableProperty property)
+    {
+        var entityType = property.DeclaringType;
+        var originalPropertyName = property.Name;
+        var shadowPropertyName = $"{originalPropertyName}ShadowHash";
+
+        if (entityType.GetProperties().All(p => p.Name != shadowPropertyName))
+        {
+            var shadowProperty = entityType.AddProperty(shadowPropertyName, typeof(string));
+            shadowProperty.IsShadowProperty();
+            // TODO: do we need the shadow hashes to be unique indexes?
+            shadowProperty.IsUniqueIndex();
+            shadowProperty.IsNullable = property.IsNullable;
+        }
     }
 }

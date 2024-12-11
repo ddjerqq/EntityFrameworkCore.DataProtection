@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.DataProtection;
+﻿using EntityFrameworkCore.DataProtection.Interceptors;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,10 +20,13 @@ public static class ServiceCollectionExt
     /// You need to configure Persistence with the returned <see cref="IDataProtectionBuilder"/> instance.
     /// see <see href="https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/overview#persistkeystofilesystem">persisting keys to file system</see>
     /// </remarks>
+    /// <param name="services">The service collection</param>
     /// <param name="applicationName">The application name to use with data protection</param>
     /// <returns>An instance of <see cref="IDataProtectionBuilder"/> used to configure the data protection services</returns>
     public static IDataProtectionBuilder AddDataProtectionServices(this IServiceCollection services, string applicationName)
     {
+        services.AddSingleton<ShadowHashSynchronizerSaveChangesInterceptor>();
+
         return services.AddDataProtection()
             .UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration

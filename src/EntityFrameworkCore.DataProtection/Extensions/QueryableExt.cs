@@ -1,8 +1,7 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
+using EntityFrameworkCore.DataProtection.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace EntityFrameworkCore.DataProtection.Extensions;
 
@@ -14,6 +13,16 @@ public static class QueryableExt
     /// <summary>
     /// Queries the entity by personal data. Please make sure your property is marked as encrypted (using <see cref="EncryptAttribute"/>) AND queryable (<see cref="EncryptAttribute.IsQueryable"/>)
     /// </summary>
+    /// <remarks>
+    /// You MUST call <see cref="DbContextOptionsBuilderExt.AddDataProtectionInterceptors"/> on the DbContext options to enable this feature.
+    /// <code>
+    /// services.AddDbContext&lt;YourDbContext&gt;(opt => opt
+    ///   .AddDataProtectionInterceptors()
+    ///   .UseWhateverYouHave());
+    /// </code>
+    /// <para></para>
+    /// The property you are querying for MUST be marked with <see cref="EncryptAttribute"/> and <see cref="EncryptAttribute.IsQueryable"/> set to true.
+    /// </remarks>
     /// <example>
     /// Example usage:
     /// <code>
@@ -57,17 +66,9 @@ public static class QueryableExt
             parameter,
             Expression.Constant(shadowPropertyName));
 
-        var comp = Expression.Equal(property, Expression.Constant(Sha256Hash(value)));
+        var comp = Expression.Equal(property, Expression.Constant(value.Sha256Hash()));
         var lambda = Expression.Lambda<Func<T, bool>>(comp, parameter);
 
         return query.Where(lambda);
-    }
-
-    private static string Sha256Hash(string value)
-    {
-        var bytes = Encoding.UTF8.GetBytes(value);
-        var hash = SHA256.HashData(bytes);
-        var hexDigest = Convert.ToHexString(hash);
-        return hexDigest.ToLower();
     }
 }

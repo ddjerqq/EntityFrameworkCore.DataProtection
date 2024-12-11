@@ -2,12 +2,11 @@
 using EntityFrameworkCore.DataProtection.ValueConverters;
 using FluentAssertions;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EntityFrameworkCore.DataProtection.Test;
 
-internal sealed class TestValueConverters
+internal sealed class ValueConvertersTests
 {
     [Test]
     public void Test_ValueConverters()

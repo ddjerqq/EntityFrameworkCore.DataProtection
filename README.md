@@ -17,7 +17,7 @@ This allows you to query the encrypted data without decrypting it first. using `
 
 ## Disclaimer
 
-This project is maintained by [one (tenx) developer](https://github.com/ddjerqq) and is not affiliated with Microsoft.
+This project is maintained by [one (10x) developer](https://github.com/ddjerqq) and is not affiliated with Microsoft.
 
 I made this library to solve my own problems with EFCore. I needed to store a bunch of protected personal data encrypted, among these properties were personal IDs, Emails, SocialSecurityNumbers and so on.
 As you know, you cannot query encrypted data with EFCore, and I wanted a simple yet boilerplate-free solution. Thus, I made this library.
@@ -79,8 +79,6 @@ public class Your(DbContextOptions<Your> options, IDataProtectionProvider dataPr
 `Program.cs`
 
 ```csharp
-builder.Services.AddDbContext<YourDbContext>(/* ... */);
-
 var keyDirectory = new DirectoryInfo("keys");
 builder.Services.AddDataProtectionServices()
     .PersistKeysToFileSystem(keyDirectory);
@@ -89,6 +87,19 @@ builder.Services.AddDataProtectionServices()
 > [!TIP]
 > See the [Microsoft documentation](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/overview) for more
 > information on **how to configure the data protection** services, and how to store your encryption keys securely.
+
+### Configure the data protection options on your DbContext
+
+`Program.cs`
+```csharp
+services.AddDbContext<YourDbContext>(opt => opt
+    .AddDataProtectionInterceptors()
+    .UseSqlite()); // or anything else
+```
+
+> [!WARNING]
+> You **MUST** call `AddDataProtectionInterceptors` if you are using any encrypted properties marked as queryable in your entities.
+> If you are not using any queryable encrypted properties, you can skip this step.
 
 ### Marking your properties as encrypted
 
@@ -112,8 +123,8 @@ protected override void OnModelCreating(ModelBuilder builder)
 {
     builder.Entity<User>(entity =>
     {
-        entity.Property(e => e.SocialSecurityNumber).IsEncrypted(true);
-        entity.Property(e => e.IdPicture).IsEncrypted();
+        entity.Property(e => e.SocialSecurityNumber).IsEncrypted(isQueryable: true);
+        entity.Property(e => e.IdPicture).IsEncrypted(isQueryable: false);
     });
 }
 ```
@@ -124,8 +135,8 @@ class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.Property(e => e.SocialSecurityNumber).IsEncrypted(true);
-        builder.Property(e => e.IdPicture).IsEncrypted();
+        builder.Property(e => e.SocialSecurityNumber).IsEncrypted(isQueryable: true);
+        builder.Property(e => e.IdPicture).IsEncrypted(isQueryable: false);
     }
 }
 ```
@@ -143,6 +154,7 @@ var foo = await DbContext.Users
 > [!WARNING]
 > The `QueryableExt.WherePdEquals` method is only available for properties that are marked as Queryable using the `[Encrypt(isQueryable: true)]` attribute or the
 > `IsEncrypted(isQueryable: true)` method.
+> And before using `WherePdEquals` you **MUST** call `AddDataProtectionInterceptors` in your `DbContext` configuration.
 
 > [!TIP]
 > The `WherePdEquals` extension method generates an expression like this one under the hood:<br/>
