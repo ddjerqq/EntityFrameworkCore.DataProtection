@@ -13,10 +13,6 @@ public static class PropertyBuilderExt
     private const string IsQueryableAnnotationName = "Klean.EntityFrameworkCore.DataProtection.IsQueryable";
     private const string IsUniqueIndexAnnotationName = "Klean.EntityFrameworkCore.DataProtection.IsUniqueIndex";
 
-    internal static readonly InvalidOperationException InvalidTypeException =
-        new("Only string and byte[] properties are supported for now. " +
-            "Please open an issue on https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/issues to request a new feature");
-
     /// <summary>
     /// Marks the property as encrypted.
     /// This will store the property as an encrypted string in the database.
@@ -28,9 +24,6 @@ public static class PropertyBuilderExt
     /// <returns>The same builder instance so that multiple configuration calls can be chained.</returns>
     public static PropertyBuilder<TProperty> IsEncrypted<TProperty>(this PropertyBuilder<TProperty> builder)
     {
-        if (typeof(TProperty) != typeof(string) && typeof(TProperty) != typeof(byte[]))
-            throw InvalidTypeException;
-
         builder.HasAnnotation(IsEncryptedAnnotationName, true);
         return builder;
     }
@@ -54,9 +47,6 @@ public static class PropertyBuilderExt
     /// <returns>The same builder instance so that multiple configuration calls can be chained.</returns>
     public static PropertyBuilder<TProperty> IsEncryptedQueryable<TProperty>(this PropertyBuilder<TProperty> builder, bool isUnique = true)
     {
-        if (typeof(TProperty) != typeof(string) && typeof(TProperty) != typeof(byte[]))
-            throw InvalidTypeException;
-
         builder.HasAnnotation(IsEncryptedAnnotationName, true);
         builder.HasAnnotation(IsQueryableAnnotationName, true);
         builder.HasAnnotation(IsUniqueIndexAnnotationName, isUnique);

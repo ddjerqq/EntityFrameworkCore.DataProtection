@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EntityFrameworkCore.DataProtection.Extensions;
 
@@ -62,12 +63,24 @@ public static class ModelBuilderExt
             var propertyType = property.PropertyInfo?.PropertyType;
             var internalConverter = property.GetValueConverter();
 
-            if (propertyType == typeof(string))
-                property.SetValueConverter(new StringDataProtectionValueConverter(protector, internalConverter));
-            else if (propertyType == typeof(byte[]))
-                property.SetValueConverter(new ByteArrayDataProtectionValueConverter(protector, internalConverter));
-            else
-                throw PropertyBuilderExt.InvalidTypeException;
+            var internalConverterConvertTo = internalConverter?.GetType().BaseType?.GetGenericArguments()[1];
+
+            if (propertyType == typeof(string) || internalConverterConvertTo == typeof(string))
+            {
+                var converter = typeof(StringDataProtectionValueConverter<>).MakeGenericType(propertyType!);
+                var instance = Activator.CreateInstance(converter, protector, internalConverter);
+                property.SetValueConverter(instance as ValueConverter);
+            }
+            else if (propertyType == typeof(byte[]) || internalConverterConvertTo == typeof(byte[]))
+            {
+                var converter = typeof(ByteArrayDataProtectionValueConverter<>).MakeGenericType(propertyType!);
+                var instance = Activator.CreateInstance(converter, protector, internalConverter);
+                property.SetValueConverter(instance as ValueConverter);
+            }
+            else if (internalConverter is null)
+                throw new InvalidOperationException(
+                    "Only string and byte[] properties are supported for now. Alternatively use an intermediary converter (see esoteric readme section)" +
+                    "Please open an issue on https://github.com/ddjerqq/Klean.EntityFrameworkCore.DataProtection/issues to request a new feature");
 
             if (status.SupportsQuerying)
                 AddShadowProperty(entityType, property, status.IsUniqueIndex);
