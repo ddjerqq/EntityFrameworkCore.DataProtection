@@ -4,6 +4,8 @@
 [![Nuget](https://img.shields.io/nuget/v/Klean.EntityFrameworkCore.DataProtection.svg)](https://www.nuget.org/packages/Klean.EntityFrameworkCore.DataProtection)
 [![Nuget Downloads](https://img.shields.io/nuget/dt/Klean.EntityFrameworkCore.DataProtection)](https://www.nuget.org/packages/Klean.EntityFrameworkCore.DataProtection)
 
+![#](./Resources/efcoredp-gh-social-cover.png "ef core data protection")
+
 `Klean.EntityFrameworkCore.DataProtection` is a [Microsoft Entity Framework Core](https://github.com/aspnet/EntityFrameworkCore) extension which
 adds support for data protection and querying for encrypted properties for your entities.
 
@@ -158,6 +160,42 @@ var foo = await DbContext.Users
 > `Where(e => EF.Property<string>(e, $"{propertyName}ShadowHash") == value.Sha256Hash())`
 
 ### Profit!
+
+---
+
+## Esoteric usage:
+
+> Q: How to use intermediary converters? <br/>
+> A: If you have an entity that needs a custom converter, you are covered, all you have to do is specify that the property has a custom converter along with the `IsEncrypted` attribute.
+```csharp
+sealed record AddressData(string Country, string ZipCode)
+{
+    public static AddressData Parse(string str) => str.Split('-') switch
+    {
+        [var country, var zipCode] => new AddressData(country, zipCode),
+        _ => throw new FormatException("Invalid format"),
+    };
+
+    public override string ToString() => $"{Country}-{ZipCode}";
+}
+
+// intermediary converter
+class AddressToStringIntermediaryConverter() : ValueConverter<AddressData, string>(
+        to => to.ToString(),
+        from => AddressData.Parse(from));
+
+// user configuration
+class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.Property(x => x.Address)
+            // the order does not matter.
+            .HasConversion<AddressToStringIntermediaryConverter>()
+            .IsEncrypted();
+    }
+}
+```
 
 ## Thank you for using this library!
 

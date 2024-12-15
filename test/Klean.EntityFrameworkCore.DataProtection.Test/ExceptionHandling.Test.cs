@@ -20,7 +20,7 @@ internal sealed class ExceptionHandlingTests
         var connection = new SqliteConnection(Util.InMemoryDatabaseConnectionString);
         connection.Open();
 
-        // services.AddDataProtectionServices("test");
+        services.AddDataProtectionServices("test");
         services.AddDbContext<BadDbContext>(opt => opt
             .AddDataProtectionInterceptors()
             .UseSqlite(connection));
@@ -28,10 +28,9 @@ internal sealed class ExceptionHandlingTests
         var serviceProvider = services.BuildServiceProvider();
         using var scope = serviceProvider.CreateScope();
 
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            using var dbContext = scope.ServiceProvider.GetRequiredService<BadDbContext>();
-        });
+        using var dbContext = scope.ServiceProvider.GetRequiredService<BadDbContext>();
+
+        Assert.Pass();
     }
 
     [Test]

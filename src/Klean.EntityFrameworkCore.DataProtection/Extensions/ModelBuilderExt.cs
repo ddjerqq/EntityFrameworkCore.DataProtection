@@ -60,11 +60,12 @@ public static class ModelBuilderExt
         foreach (var (entityType, property, status) in properties)
         {
             var propertyType = property.PropertyInfo?.PropertyType;
+            var internalConverter = property.GetValueConverter();
 
             if (propertyType == typeof(string))
-                property.SetValueConverter(new StringDataProtectionValueConverter(protector));
+                property.SetValueConverter(new StringDataProtectionValueConverter(protector, internalConverter));
             else if (propertyType == typeof(byte[]))
-                property.SetValueConverter(new ByteArrayDataProtectionValueConverter(protector));
+                property.SetValueConverter(new ByteArrayDataProtectionValueConverter(protector, internalConverter));
             else
                 throw PropertyBuilderExt.InvalidTypeException;
 

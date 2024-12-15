@@ -17,6 +17,8 @@ internal sealed class User
     /// </summary>
     public required string Email { get; init; }
 
+    public required AddressData Address { get; init; }
+
     [Encrypt(IsQueryable = false, IsUnique = false)]
     public required byte[] IdPicture { get; init; }
 
@@ -28,6 +30,7 @@ internal sealed class User
             Name = RandomNumberGenerator.GetHexString(5),
             SocialSecurityNumber = RandomNumberGenerator.GetHexString(11),
             Email = RandomNumberGenerator.GetHexString(10),
+            Address = new AddressData { Country = "GE", ZipCode = "42069" },
             IdPicture = RandomNumberGenerator.GetBytes(256),
         };
     }

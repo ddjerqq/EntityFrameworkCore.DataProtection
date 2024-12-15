@@ -11,10 +11,18 @@ public sealed class ByteArrayDataProtectionValueConverter : ValueConverter<byte[
     /// <summary>
     /// Initializes a new instance of <see cref="ByteArrayDataProtectionValueConverter"/>.
     /// </summary>
-    /// <param name="protector"></param>
-    public ByteArrayDataProtectionValueConverter(IDataProtector protector) : base(
-        to => protector.Protect(to),
-        from => protector.Unprotect(from))
+    /// <param name="protector">the data protector used to protect and unprotect the data</param>
+    /// <param name="internalConverter">the internal value converter to use</param>
+    public ByteArrayDataProtectionValueConverter(IDataProtector protector, ValueConverter? internalConverter = null) : base(
+        to => internalConverter == null ? protector.Protect(to) : protector.Protect((byte[])internalConverter.ConvertToProvider(to)!),
+        from => internalConverter == null ? protector.Unprotect(from) : (byte[])internalConverter.ConvertFromProvider(protector.Unprotect(from))!)
     {
+        if (internalConverter is null) return;
+
+        var genericArguments = internalConverter.GetType().GetGenericArguments();
+        var convertTo = genericArguments[1];
+
+        if (convertTo != typeof(byte[]))
+            throw new InvalidOperationException("The internal value converter must convert your type to a byte[] to be used as an intermediary converter.");
     }
 }
