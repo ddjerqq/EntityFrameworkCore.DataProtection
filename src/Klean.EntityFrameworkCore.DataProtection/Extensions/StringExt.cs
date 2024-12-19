@@ -8,10 +8,17 @@ namespace EntityFrameworkCore.DataProtection.Extensions;
 /// </summary>
 internal static class StringExt
 {
-    internal static string Sha256Hash(this string value)
+    internal const string EnvKey = "EFCORE_DATA_PROTECTION__HASHING_SALT";
+
+    internal static string HmacSha256Hash(this string value)
     {
-        var bytes = Encoding.UTF8.GetBytes(value);
-        var hash = SHA256.HashData(bytes);
+        var salt =
+            Environment.GetEnvironmentVariable(EnvKey)
+            ?? throw new InvalidOperationException($"{EnvKey} is not present in the environment, please set it to a strong value and keep it safe, otherwise querying will not work.");
+
+        var saltBytes = Encoding.UTF8.GetBytes(salt);
+        var payloadBytes = Encoding.UTF8.GetBytes(value);
+        var hash = HMACSHA256.HashData(saltBytes, payloadBytes);
         var hexDigest = Convert.ToHexString(hash);
         return hexDigest.ToLower();
     }

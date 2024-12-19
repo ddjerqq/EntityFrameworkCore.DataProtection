@@ -62,7 +62,7 @@ internal sealed class ShadowHashSynchronizerSaveChangesInterceptor : SaveChanges
             var shadowProperty = entityType.FindProperty(shadowPropertyName);
 
             if (!string.IsNullOrWhiteSpace(originalValue) && shadowProperty is not null)
-                entry.Property(shadowPropertyName).CurrentValue = originalValue.Sha256Hash();
+                entry.Property(shadowPropertyName).CurrentValue = originalValue.HmacSha256Hash();
         }
     }
 }

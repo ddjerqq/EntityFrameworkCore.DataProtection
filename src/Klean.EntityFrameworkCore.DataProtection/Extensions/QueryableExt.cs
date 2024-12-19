@@ -66,7 +66,7 @@ public static class QueryableExt
             parameter,
             Expression.Constant(shadowPropertyName));
 
-        var comp = Expression.Equal(property, Expression.Constant(value.Sha256Hash()));
+        var comp = Expression.Equal(property, Expression.Constant(value.HmacSha256Hash()));
         var lambda = Expression.Lambda<Func<T, bool>>(comp, parameter);
 
         return query.Where(lambda);

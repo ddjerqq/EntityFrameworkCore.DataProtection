@@ -66,7 +66,7 @@ internal sealed class ExceptionHandlingTests
 
     class BadEntity
     {
-        [Encrypt]
+        [Encrypt(true, true)]
         public Guid Id { get; set; }
     }
 }

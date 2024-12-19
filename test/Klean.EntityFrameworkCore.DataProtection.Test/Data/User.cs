@@ -9,7 +9,7 @@ internal sealed class User
 
     public required string Name { get; init; }
 
-    [Encrypt]
+    [Encrypt(true, true)]
     public required string SocialSecurityNumber { get; init; }
 
     /// <summary>
@@ -19,7 +19,7 @@ internal sealed class User
 
     public required AddressData Address { get; init; }
 
-    [Encrypt(IsQueryable = false, IsUnique = false)]
+    [Encrypt(false, false)]
     public required byte[] IdPicture { get; init; }
 
     public static User CreateRandom()

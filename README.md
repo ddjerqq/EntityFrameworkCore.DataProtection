@@ -15,7 +15,7 @@ When you need to store sensitive data in your database, you may want to encrypt 
 encrypt data, it becomes impossible to query it by EF-core, which is not really convenient if you want to encrypt, for example, email addresses, or SSNs
 AND then filter entities by them.
 
-This library has support for hashing the sensitive data and storing their (sha256) hashes in a shadow property alongside the encrypted data.
+This library has support for hashing the salted sensitive data and storing their (Hmac Sha256) hashes in a shadow property alongside the encrypted data.
 This allows you to query for the encrypted properties without decrypting them first. using `QueryableExt.WherePdEquals`
 
 # Disclaimer
@@ -83,6 +83,11 @@ builder.Services.AddDataProtectionServices()
     .PersistKeysToFileSystem(keyDirectory);
 ```
 
+> [!WARNING]
+> If you want to query for encrypted properties, along with marking your properties as queryable, you **MUST** set 
+> `EFCORE_DATA_PROTECTION__HASHING_SALT` in the environment. I could suggest you setting it to a random guid, or a very long string.
+> This was implemented to prevent rainbow attacks on sensitive data.
+
 > [!TIP]
 > See the [Microsoft documentation](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/overview) for more
 > information on **how to configure the data protection** services, and how to store your encryption keys securely.
@@ -110,17 +115,21 @@ Using the EncryptedAttribute:
 ```csharp
 class User
 {
-  [Encrypt(IsQueryable = true, IsUnique = true)]
+  [Encrypt(isQueryable: true, isUnique: true)]
   public string SocialSecurityNumber { get; set; }
 
-  [Encrypt(IsQueryable = false, IsUnique = false)]
+  [Encrypt(isQueryable: false, isUnique: false)]
   public byte[] IdPicture { get; set; }
 }
 ```
 
 > [!TIP]
-> By default `IsQueryable` and `IsUnique` are set to `true`, you can omit them if you want to use the default values.
-> If you have a property that is marked as `IsQueryable = true` and you want to query it, you **MUST** call `AddDataProtectionInterceptors` in your `DbContext` configuration.
+> `isQueryable` marks a property as queryable (this will generate a shadow hash) <br/>
+> `isUnique` marks a property as unique, and adds a unique index on the property. An index is added by default, even if the property is not marked as unique. However, that default index is not Unique. 
+
+> [!WARNING]
+> If you have a property that is marked as queryable, you **MUST** call `AddDataProtectionInterceptors` in your `DbContext` configuration.
+> And you **MUST** set `EFCORE_DATA_PROTECTION__HASHING_SALT` in the environment. Otherwise, an exception will be thrown while trying to save the entity. 
 
 Using the FluentApi (in your `DbContext.OnModelCreating` method):
 ```csharp
@@ -148,7 +157,7 @@ var foo = await DbContext.Users
 ```
 
 > [!WARNING]
-> The `QueryableExt.WherePdEquals` method is only available for properties that are marked as Queryable using the `[Encrypt(IsQueryable = true)]` attribute or the
+> The `QueryableExt.WherePdEquals` method is only available for properties that are marked as Queryable using the `[Encrypt(isQueryable: true)]` attribute or the
 > `IsEncryptedQueryable()` method.
 
 > [!CAUTION]
@@ -157,7 +166,7 @@ var foo = await DbContext.Users
 
 > [!NOTE]
 > The `WherePdEquals` extension method generates an expression like this one under the hood:<br/>
-> `Where(e => EF.Property<string>(e, $"{propertyName}ShadowHash") == value.Sha256Hash())`
+> `Where(e => EF.Property<string>(e, $"{propertyName}ShadowHash") == value.HmacSha256Hash())`
 
 ### Profit!
 
